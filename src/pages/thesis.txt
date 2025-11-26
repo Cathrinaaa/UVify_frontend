@@ -1,0 +1,687 @@
+Plate 6 shows the devices of the UVify on a schematic diagram. The project consists of the ESP32 C3 super mini, VEML6075 UV sensor, 2000 mAh 3.7V battery, charging module, SD card module, rocker switch, buzzer, step-up booster, 0.91-inch LCD, and RTC module DS3231. The circuit is functionally partitioned into three essential subsystems: Power Management, Data Communication, and Input/Output. The Power Management system begins with the 3.7V battery connected to the charging module. Power flow is then controlled by the rocker switch before entering the step-up boost power converter, which is vital for providing regulated 5V and 3.3V rails to the microcontroller and its peripherals. For Data Communication, the ESP32 C3 employs a shared I²C bus (SDA: Pin 8, SCL: Pin 9) for the slow-speed devices—the VEML6075 sensor, RTC DS3231 (for accurate time-stamping), and the 0.91-inch OLED display. Simultaneously, it dedicates the high-speed SPI bus (Pins 4, 5, 6, and 10) exclusively to the SD card module for reliable, non-volatile data logging. Finally, in the Input/Output section, the buzzer is connected to a dedicated digital output pin (Pin 7), providing a swift and distinct audible alert to complete the core sensing, processing, and notification loop of the UVify prototype.
+
+The UVify web application provides comprehensive UV monitoring through a responsive dashboard accessible via web browsers, enabling users to create accounts, authenticate securely, monitor real-time UV data from linked devices, configure personalized profiles based on Fitzpatrick skin types, customize alert preferences, manage sunscreen reminders, access detailed analytics and risk assessments, generate downloadable reports in multiple formats, and utilize educational resources for UV safety awareness, while system administrators oversee platform operations, data backup procedures, and user account management through a secure architecture built with React.js frontend, Node.js/Express.js backend, MongoDB database, and JWT authentication ensuring data privacy and real-time synchronization with UVify hardware devices.
+
+================================================================================
+
+KEY SPECIFICATIONS FOR UVIFY SYSTEM DEVELOPMENT AND IMPLEMENTATION
+================================================================================
+
+A. ARDUINO-BASED HARDWARE SPECIFICATIONS
+
+Sensor Accuracy Implementation:
+- UV Sensor: VEML6075 module with 100ms integration time for accurate UVI measurements
+- Measurement Range: 0-11+ UV Index with 5-level classification (Low ≤2, Moderate 3-5, High 6-7, Very High 8-10, Extreme ≥11)
+- Calibration: Factory-calibrated sensor with automatic temperature compensation
+- Sampling Rate: 30-second intervals for continuous monitoring with minimal power consumption
+- Data Resolution: 0.01 UV Index precision with automatic error detection and retry logic
+
+Power Optimization Features:
+- Microcontroller: ESP32-C3 Super Mini (160MHz RISC-V processor, 4MB flash, 400KB RAM)
+- Battery System: 2000mAh 3.7V Li-Po battery with TP4056 charging module and MT3608 boost converter
+- Power Management: Continuous operation with efficient resource utilization
+- Sleep Modes: Deep sleep capability for extended battery life (up to 48 hours continuous monitoring)
+- Voltage Regulation: 5V and 3.3V rails for optimal component performance
+- Current Draw: Low-power OLED display (0.91" SSD1306) and efficient sensor polling
+
+B. WEB-BASED APP SPECIFICATIONS
+
+Real-Time Data Processing:
+- Backend Framework: Node.js 18.0+ with Express.js 4.19+ server handling HTTP POST requests
+- Data Reception: ESP32 transmits UV readings every 2 seconds via application/x-www-form-urlencoded format
+- Processing Pipeline: Immediate validation, database storage, and dashboard update within 100ms
+- Dual Storage System: In-memory array for instant dashboard display + PostgreSQL persistence
+- Error Handling: Automatic retry logic with SD card queuing for offline device operation
+- Synchronization: NTP-based timestamp synchronization for accurate time-series data
+
+User Interface and Alert System:
+- Frontend Framework: React.js 18.0+ with responsive Tailwind CSS design
+- Dashboard Components: Real-time UV gauge, historical charts using Recharts library
+- Data Visualization: Interactive line charts, bar graphs, and trend analysis
+- Alert Notifications: Web browser notifications with customizable UV thresholds
+- Responsive Design: Mobile-first approach supporting phones, tablets, and desktops
+- State Management: React Context API for global UV data and user preferences
+
+================================================================================
+
+END OF KEY SPECIFICATIONS
+================================================================================
+
+DEVICE FIRMWARE SPECIFICATIONS:
+
+Programming Language: C/C++ (Arduino Framework)
+Development Environment: Arduino IDE 2.0+ with ESP32 board support
+Microcontroller: ESP32-C3 Super Mini (32-bit RISC-V single-core processor, 160MHz)
+Operating System: FreeRTOS (Real-time operating system for embedded systems)
+Memory Specifications:
+- Flash Memory: 4MB for firmware and file system storage
+- RAM: 400KB for runtime data and variables
+- SD Card: FAT32 formatted microSD card for data logging (up to 32GB)
+
+Core Libraries and Dependencies:
+- Wire.h: I2C communication protocol for sensor interfaces
+- Adafruit_GFX.h & Adafruit_SSD1306.h: OLED display graphics and text rendering
+- Adafruit_VEML6075.h: UV sensor communication and data processing
+- SPI.h: Serial Peripheral Interface for SD card communication
+- SD.h: FAT file system operations for data logging
+- WiFi.h & WiFiMulti.h: Multi-network WiFi connectivity management
+- HTTPClient.h: RESTful API communication with web backend
+- RTClib.h: DS3231 real-time clock management
+- time.h: NTP time synchronization utilities
+
+Firmware Architecture:
+- Modular Design: Separate functions for sensor reading, display management, data transmission, and alert generation
+- Non-blocking Operations: Asynchronous WiFi connectivity and data upload to prevent system hangs
+- Error Handling: Comprehensive exception management for sensor failures, network disconnections, and SD card issues
+- Power Management: Continuous operation with efficient resource utilization for battery optimization
+
+ESP32-C3 Super Mini Implementation Details:
+- Microcontroller: ESP32-C3 RISC-V 32-bit single-core processor at 160MHz
+- WiFi: 802.11 b/g/n with WPA2/WPA3 security support
+- GPIO Configuration: SDA(8), SCL(9) for I2C; SCK(4), MISO(5), MOSI(6), CS(10) for SPI SD card
+- Buzzer Control: GPIO 7 with PWM for multi-pattern alert tones
+- Memory Usage: 4MB flash for firmware, ~400KB available RAM for runtime operations
+- Real-time Clock: DS3231 I2C module for accurate timestamping
+- Display Interface: 0.91" SSD1306 OLED (128x32) via I2C bus
+- UV Sensor: VEML6075 with 100ms integration time for accurate UVI readings
+
+Key Software Components:
+1. Sensor Integration Module: VEML6075 UV index calculation with 100ms integration time
+2. Display Interface Module: 128x32 OLED rendering with custom fonts and status indicators
+3. Data Logging Module: CSV format storage with timestamp, UV index, and alert level
+4. Network Communication Module: Multi-SSID WiFi support with automatic reconnection
+5. Alert System Module: Multi-pattern buzzer alerts based on UV intensity levels
+6. Time Synchronization Module: NTP-based RTC calibration for accurate data timestamping
+
+Data Processing Algorithms:
+- UV Index Classification: 5-level categorization (Low ≤2, Moderate 3-5, High 6-7, Very High 8-10, Extreme ≥11)
+- Alert Pattern Logic: Frequency and duration based on UV severity levels
+- Data Transmission Protocol: HTTP POST with JSON payload structure
+- Retry Mechanism: Exponential backoff for failed network transmissions
+- Memory Management: Circular buffer for offline data queuing
+
+WEB APPLICATION SPECIFICATIONS:
+
+Frontend Framework: React.js 18.0+ with Hooks-based architecture
+Styling Framework: Tailwind CSS 3.0+ for responsive utility-first design
+State Management: React Context API for global state handling
+Data Visualization: Recharts library for interactive UV charts and graphs
+Build Tool: Vite for fast development and optimized production builds
+Package Manager: npm for dependency management
+
+Backend Framework: Node.js 18.0+ with Express.js 4.19+ and ES modules
+Database: PostgreSQL (Neon) with Drizzle ORM 0.44+ for type-safe database operations
+Authentication: Session-based authentication with bcrypt 6.0+ password hashing
+API Architecture: RESTful API design with comprehensive endpoint coverage
+AI Integration: Google Gemini 1.5 Flash API for personalized UV safety suggestions
+File Upload: Multer 1.4+ middleware for potential future file handling capabilities
+Security: CORS 2.8+ configuration for cross-origin requests and environment-based security
+Database Driver: pg 8.16+ for PostgreSQL connectivity
+
+Database Schema Design (Drizzle ORM):
+- Users Table: user_id (serial PK), username, password, email, created_at, first_name, last_name, phone, profile_image
+- UV Readings Table: reading_id (serial PK), user_id (FK), date, time, uvi (numeric), level, created_at
+
+Security Implementation:
+- CORS Configuration: Specific origins allowed (localhost:5173, vercel.app domains)
+- Environment Variables: Sensitive data stored in .env files
+- Input Validation: Required field checks for all endpoints
+- Error Handling: Comprehensive try-catch blocks with proper HTTP status codes
+- Data Sanitization: Type conversion and validation for database operations
+
+Actual API Endpoints (from server.js implementation):
+- Health Check: GET /health
+- User Registration: POST /register
+- Authentication: POST /auth/login
+- UV Data Reception: POST /receive-data (ESP32 endpoint)
+- User History: GET/POST/DELETE /history/:userId
+- Profile Management: GET/PUT /profile/:userId
+- Latest Reading: GET /latest (dashboard)
+- Full History: GET /history (with optional userId query)
+
+Real-time Features:
+- WebSocket Integration: Socket.io for live UV data updates
+- Push Notifications: Browser notification API for alert delivery
+- Live Dashboard Updates: Automatic refresh of UV readings and device status
+- Real-time Analytics: Dynamic chart updates with new data arrival
+
+Responsive Design Specifications:
+- Mobile-First Approach: Tailwind CSS breakpoints for all screen sizes
+- Progressive Web App: Service worker for offline functionality
+- Cross-Browser Compatibility: Support for Chrome, Firefox, Safari, Edge
+- Accessibility: WCAG 2.1 compliance with ARIA labels and keyboard navigation
+
+Performance Optimization:
+- Code Splitting: React.lazy() for component-based loading
+- Image Optimization: WebP format with lazy loading
+- Caching Strategy: Redis for session storage and API response caching
+- Database Indexing: Optimized queries with compound indexes
+- CDN Integration: Cloudflare for static asset delivery
+
+
+
+Testing Framework:
+- Unit Testing: Jest for component and utility function testing
+- Integration Testing: Supertest for API endpoint validation
+- End-to-End Testing: Cypress for user workflow automation
+- Performance Testing: Lighthouse for web vitals monitoring
+- AI Testing: Mock responses for Gemini API integration testing
+
+Deployment Specifications:
+- Containerization: Docker for consistent environment deployment
+- Orchestration: Docker Compose for multi-service management
+- Cloud Platform: Vercel for frontend, Railway/Render for backend
+- CI/CD Pipeline: GitHub Actions for automated testing and deployment
+- Environment Management: Separate configurations for development, staging, and production
+
+================================================================================
+
+SYSTEM INTEGRATION SPECIFICATIONS
+================================================================================
+
+Device-Web Communication Protocol (ESP32 to Backend):
+- Data Format: HTTP POST with application/x-www-form-urlencoded body
+- Payload Structure: date=YYYY-MM-DD&time=HH:MM:SS&uvi=X.XX&level=LEVEL
+- Transmission Method: HTTP POST to /receive-data endpoint
+- Authentication: None (open endpoint for device data submission)
+- Frequency: Real-time attempts every 2 seconds when WiFi connected
+- Offline Queue: Failed transmissions stored on SD card for retry
+- Error Handling: Automatic retry during periodic upload cycles (every 2 minutes)
+
+ESP32 Data Flow Implementation:
+- Sensor Reading: VEML6075 polled every 30 seconds
+- Data Processing: UV index classified into 5 levels (Low/Moderate/High/Very High/Extreme)
+- Local Storage: CSV format logging to SD card with headers: Date,Time,UVI,Level
+- Real-time Transmission: Immediate HTTP POST attempts to backend
+- Retry Logic: Upload pending data every 120 seconds when WiFi available
+- Time Synchronization: NTP sync with pool.ntp.org (GMT+8 timezone)
+
+Backend Data Processing:
+- Dual Storage: In-memory array for real-time dashboard + PostgreSQL database persistence
+- Data Validation: Required field checks (date, time, uvi, level)
+- Database Schema: Type-safe insertion using Drizzle ORM
+- User Association: Default user_id=1 for single-user device integration
+- Response Format: JSON confirmation with success status and entry details
+
+Data Synchronization Strategy:
+- Real-time Updates: Immediate data availability for dashboard display
+- Persistent Storage: PostgreSQL database for long-term data retention
+- Conflict Resolution: Timestamp-based ordering with created_at fields
+- Offline Support: SD card queuing with automatic sync on reconnection
+- Data Integrity: Type conversion and validation before database insertion
+
+System Monitoring:
+- Health Checks: Automated monitoring of device connectivity and data flow
+- Performance Metrics: Response time tracking and error rate monitoring
+- User Analytics: Usage patterns and feature adoption tracking
+- System Logs: Comprehensive logging for debugging and audit trails
+
+================================================================================
+
+SOFTWARE SPECIFICATION FOR UVIFY SYSTEM
+================================================================================
+
+The software specification for UVify encompasses both the device firmware and web application components, designed to deliver the responsive and usable performance demonstrated in the evaluation results above.
+
+DEVICE FIRMWARE SPECIFICATION:
+
+Microcontroller Platform:
+- ESP32-C3 Super Mini module with RISC-V 32-bit single-core processor
+- Operating frequency: 160 MHz with 400KB RAM and 4MB flash memory
+- Integrated WiFi (802.11 b/g/n) and Bluetooth 5.0 connectivity
+- Power management with multiple sleep modes for battery optimization
+
+UV Sensor Integration:
+- VEML6075 UV sensor with I2C communication protocol
+- Integration time: 100ms for accurate UV index measurements
+- Measurement range: 0-11+ UV Index with automatic error detection
+- Sampling frequency: 30-second intervals for continuous monitoring
+- Classification algorithm: 5-level UV categorization (Low/Moderate/High/Very High/Extreme)
+
+Display and User Interface:
+- 0.91-inch SSD1306 OLED display (128x32 resolution) via I2C bus
+- Real-time UV level display with large, centered text for visibility
+- Automatic screen updates every 30 seconds with current readings
+- Low-power consumption with high contrast for outdoor readability
+
+Alert System Specification:
+- Active buzzer connected to GPIO 7 with PWM capability
+- Multi-pattern alert tones based on UV severity levels:
+  - Low: Single 2000Hz beep (200ms duration)
+  - Moderate: Double 700Hz beeps (500ms intervals)
+  - High: Five 1000Hz beeps (400ms intervals)
+  - Very High: Eight rapid 1000Hz beeps (100ms intervals)
+  - Extreme: Continuous 4000Hz tone (5000ms duration)
+- Immediate alert activation upon UV threshold detection
+
+Data Storage and Transmission:
+- MicroSD card interface via SPI bus (GPIO 4/SCK, 5/MISO, 6/MOSI, 10/CS)
+- FAT32 file system with CSV format logging (Date,Time,UVI,Level headers)
+- WiFi connectivity with multi-network support via /wifi_list.txt configuration
+- HTTP POST transmission to backend server every 2 seconds
+- Offline queuing system with automatic retry every 2 minutes
+
+Time Synchronization:
+- DS3231 RTC module via I2C bus for accurate timestamping
+- NTP synchronization with pool.ntp.org server (GMT+8 timezone)
+- Automatic time correction during WiFi reconnection cycles
+
+WEB APPLICATION SPECIFICATION:
+
+Frontend Architecture:
+- React.js 18.0+ framework with functional components and Hooks
+- Tailwind CSS utility-first framework for responsive design
+- Vite build tool for fast development and optimized production
+- Recharts library for interactive data visualization components
+- React Context API for global state management of UV data and user preferences
+
+Backend Infrastructure:
+- Node.js 18.0+ runtime with Express.js 4.19+ web framework
+- ES modules implementation for modern JavaScript architecture
+- PostgreSQL database hosted on Neon platform
+- Drizzle ORM for type-safe database operations and query building
+- RESTful API design with standardized endpoint structure
+
+Database Schema:
+- Users table: user_id (primary key), username, password, email, first_name, last_name, phone, profile_image, created_at
+- UV_readings table: reading_id (primary key), user_id (foreign key), date, time, uvi (numeric), level, created_at
+
+Real-Time Data Processing:
+- HTTP POST endpoint (/receive-data) for ESP32 data reception
+- Dual storage mechanism: in-memory array for instant dashboard updates + PostgreSQL persistence
+- Data validation with required field checking (date, time, uvi, level)
+- Automatic timestamp assignment and user association (default user_id: 1)
+- Error handling with graceful degradation for database failures
+
+User Interface Components:
+- Responsive dashboard with real-time UV gauge display
+- Historical data visualization with interactive charts and graphs
+- Alert notification system with browser notification API
+- Mobile-first design with adaptive layouts for all screen sizes
+- Color-coded UV level indicators (Green/Yellow/Orange/Red/Purple)
+
+API Endpoints Implementation:
+- Authentication: POST /auth/login for user login
+- User Management: POST /register for account creation
+- Profile Operations: GET/PUT /profile/:userId for user data management
+- UV Data Access: GET /history/:userId for user-specific readings
+- Dashboard Support: GET /latest for current readings display
+- System Health: GET /health for server status monitoring
+
+Security Implementation:
+- CORS configuration for cross-origin request handling
+- Environment variable management for sensitive data protection
+- Input validation and sanitization for all API endpoints
+- Type conversion and data validation before database operations
+- Error response standardization with appropriate HTTP status codes
+
+AI Integration Feature:
+- Google Gemini 1.5 Flash API for intelligent UV safety recommendations
+- RESTful API communication with JSON payload structure
+- UV data analysis for personalized protection advice
+- Natural language response generation (limited to 2-3 sentences)
+- Error handling with fallback responses for AI service unavailability
+
+Performance Optimization:
+- Lazy loading implementation for component-based code splitting
+- Database query optimization with proper indexing strategies
+- Caching mechanisms for frequently accessed data
+- Progressive Web App capabilities for offline functionality
+- CDN integration for static asset delivery optimization
+
+================================================================================
+
+UVIFY SOFTWARE COMPONENT PLATES
+================================================================================
+
+Plate 17. Frontend Architecture and User Interface Components
+
+The UVify frontend is built on React.js 18.0+ framework utilizing functional components and Hooks for dynamic state management and UI lifecycle. The system employs Tailwind CSS for utility-first styling with mobile-first responsive design, ensuring optimal display across all devices (mobile, tablet, desktop). React Context API serves as the global state management solution, centralizing real-time UV readings, historical data, and user preferences for consistent access across components. Recharts library handles all data visualization, generating responsive, interactive charts and graphs for historical data analysis and real-time UV gauge displays on the main dashboard. The Vite build tool enables fast development compilation and optimized production builds for enhanced performance.
+
+Plate 18. Backend Infrastructure and Data Management System
+
+The UVify backend utilizes Node.js 18.0+ runtime with Express.js 4.19+ framework to establish a robust server environment supporting ES modules. PostgreSQL database hosted on Neon platform provides scalable relational data persistence, interfaced through Drizzle ORM for type-safe database operations and SQL injection prevention. The system implements a Dual Storage Mechanism where incoming ESP32 data is first cached in high-speed in-memory arrays for instantaneous dashboard display, then asynchronously persisted to PostgreSQL for long-term storage. Security implementations include CORS configuration for cross-origin access control, environment variable management for sensitive data protection, and rigorous input validation across all RESTful API endpoints. Google Gemini 1.5 Flash API integration provides intelligent UV safety recommendations through natural language processing of UV data patterns.
+
+================================================================================
+
+UVIFY SYSTEM OUTPUT AND DELIVERABLES
+================================================================================
+
+The UVify system delivers comprehensive UV monitoring outputs through integrated hardware and software components that provide users with real-time environmental awareness, personalized safety guidance, and detailed exposure analytics. The hardware device, measuring 44mm height × 68mm length × 51mm width (70mm height with clip) and weighing 90 grams (125 grams with clip), outputs continuous UV index readings classified into five color-coded levels (Low/Moderate/High/Very High/Extreme) displayed on a 0.91-inch OLED screen with corresponding audible alert patterns ranging from single beeps to continuous tones, while simultaneously logging timestamped data to SD card storage. The web application outputs a responsive dashboard displaying real-time UV readings, interactive charts and graphs for historical trend analysis, personalized risk assessments based on skin type, and sunscreen reapplication reminders. Users receive immediate visual feedback through color-coded UV indicators, proactive notifications for dangerous exposure levels, comprehensive exposure history with statistical insights, and recommendations that adapt to individual skin sensitivity profiles, ultimately delivering actionable information that enables informed sun protection decisions and long-term skin health management.
+
+================================================================================
+
+END OF UVIFY SYSTEM OUTPUT
+================================================================================
+
+1. INTRODUCTION TO UVIFY
+
+UVify is an integrated UV monitoring system consisting of a portable hardware device and a web-based application designed to provide real-time ultraviolet (UV) radiation monitoring for personal health and safety. The system helps users track UV exposure levels, receive timely alerts for dangerous conditions, and maintain comprehensive records of their UV exposure history.
+
+System Components:
+- UVify Hardware Device: Portable ESP32-based UV monitoring unit
+- UVify Web Application: Responsive dashboard for data visualization and management
+- Real-time Data Synchronization: Seamless communication between device and cloud
+
+2. HARDWARE DEVICE SETUP AND CONFIGURATION
+
+2.1 Initial Device Preparation
+
+Step 1: Unboxing and Inspection
+- Carefully remove the UVify device from its packaging
+- Inspect all components: ESP32 device, OLED display, buzzer, battery, SD card, and charger
+- Ensure all connections are secure and components are undamaged
+
+Step 2: Battery Installation and Charging
+- Insert the 2000mAh Li-Po battery into the device battery compartment
+- Connect the TP4056 charging module to the battery terminals
+- Plug the USB charger into a power source (5V, 1A recommended)
+- Allow battery to charge fully (approximately 2-3 hours for complete charge)
+- The charging module's LED indicators will show charging status (Red: charging, Green: full)
+
+Step 3: SD Card Configuration
+- Remove the microSD card from the device (if inserted)
+- Insert the SD card into a computer using an SD card reader
+- Create a text file named "wifi_list.txt" in the root directory
+- Add WiFi network credentials in the format: SSID,password (one per line)
+- Example content:
+  HomeNetwork,MyPassword123
+  OfficeWiFi,OfficePass456
+- Safely eject the SD card and reinsert it into the UVify device
+
+2.2 Device Power-On and Initialization
+
+Step 1: Power Activation
+- Locate the rocker switch on the device
+- Switch to the "ON" position
+- The device will begin initialization sequence
+
+Step 2: Initialization Process
+- OLED display shows "Initializing..." message
+- Device connects to configured WiFi networks automatically
+- NTP synchronization occurs for accurate timekeeping
+- Display shows "WiFi: [Network Name]" upon successful connection
+- Final display shows "UVify Ready!" indicating successful setup
+
+Step 3: Verification
+- Device begins UV monitoring immediately (30-second intervals)
+- OLED display shows current UV level classification
+- Buzzer may activate if UV levels require attention
+
+3. DEVICE OPERATION AND MONITORING
+
+3.1 Understanding UV Level Classifications
+
+The UVify device classifies UV radiation into five levels:
+
+- LOW (Green): UV Index ≤ 2 - Minimal sun protection required
+- MODERATE (Yellow): UV Index 3-5 - Sun protection recommended
+- HIGH (Orange): UV Index 6-7 - Sun protection essential
+- VERY HIGH (Orange/Red): UV Index 8-10 - Extra sun protection required
+- EXTREME (Purple): UV Index ≥ 11 - Avoid sun exposure
+
+3.2 Device Display and Alerts
+
+Visual Indicators:
+- OLED screen displays current UV level prominently
+- Real-time updates every 30 seconds
+- Battery status indicator when levels are low
+
+Audible Alerts:
+- LOW: Single short beep (2000Hz, 200ms)
+- MODERATE: Double beeps (700Hz, 500ms intervals)
+- HIGH: Five rapid beeps (1000Hz, 400ms intervals)
+- VERY HIGH: Eight rapid beeps (1000Hz, 100ms intervals)
+- EXTREME: Continuous tone (4000Hz, 5000ms)
+
+3.3 Data Logging and Storage
+
+Automatic Features:
+- All UV readings logged to SD card in CSV format
+- Data includes: Date, Time, UV Index, Level classification
+- Timestamped entries with DS3231 RTC accuracy
+- Local storage continues during WiFi disconnection
+- Automatic retry and synchronization when connection restored
+
+4. WEB APPLICATION SETUP AND USAGE
+
+4.1 Account Creation and Login
+
+Step 1: Access the Web Application
+- Open a web browser (Chrome, Firefox, Safari, or Edge recommended)
+- Navigate to the UVify web application URL
+- Click "Sign Up" or "Register" for new users
+
+Step 2: User Registration
+- Enter personal information: username, email, password
+- Provide optional details: first name, last name, phone
+- Agree to terms of service and privacy policy
+- Click "Create Account" to complete registration
+- Check email for verification link and click to activate account
+
+Step 3: User Login
+- Return to the login page
+- Enter registered email and password
+- Click "Sign In" to access the dashboard
+- Account remains logged in for subsequent sessions
+
+4.2 Dashboard Navigation and Features
+
+Main Dashboard Overview:
+- Real-time UV readings from connected device
+- Current UV level with color-coded indicators
+- Device connection status and battery level
+- Quick access to alerts and notifications
+
+Navigation Menu:
+- Dashboard: Main monitoring interface
+- History: Detailed UV exposure records
+- Profile: Personal settings and preferences
+- Analytics: Advanced data visualization
+- Settings: Alert preferences and system configuration
+
+4.3 Personal Profile Configuration
+
+Skin Type Selection:
+- Navigate to Profile section
+- Select Fitzpatrick skin type (1-6):
+  1. Very fair skin, always burns
+  2. Fair skin, usually burns
+  3. Fair to medium, sometimes burns
+  4. Medium skin, rarely burns
+  5. Brown skin, rarely burns
+  6. Dark brown/black skin, never burns
+
+Location Settings:
+- Enable GPS for automatic location detection
+- Or manually select location for UV forecast accuracy
+- System adjusts recommendations based on geographical UV patterns
+
+Sunscreen Preferences:
+- Set current SPF level (15, 30, 50, 100+)
+- Configure reapplication reminders
+- Log manual sunscreen applications
+
+4.4 Alert Management and Customization
+
+Alert Threshold Configuration:
+- Access Settings > Alerts
+- Set custom UV index thresholds for notifications
+- Choose notification methods (web, email, SMS if available)
+- Configure quiet hours to prevent nighttime alerts
+
+Alert Types:
+- UV Level Warnings: Automatic alerts based on exposure levels
+- Sunscreen Reminders: Timed notifications for reapplication
+- Device Alerts: Battery low, connection lost, SD card full
+- Emergency Alerts: Extreme UV conditions requiring immediate action
+
+5. ADVANCED FEATURES AND ANALYTICS
+
+5.1 Historical Data Analysis
+
+Data Access:
+- Navigate to History section
+- Select date ranges for analysis
+- View detailed UV readings with timestamps
+- Export data in CSV, JSON, or PDF formats
+
+Trend Analysis:
+- Identify peak UV exposure periods
+- Compare daily, weekly, and monthly patterns
+- Analyze seasonal UV variations
+- Track personal exposure habits over time
+
+5.2 Risk Assessment and Recommendations
+
+Personalized Analysis:
+- System calculates UV risk based on skin type and exposure history
+- Provides personalized protection recommendations
+- Tracks cumulative UV exposure for skin health monitoring
+- Generates safety reports for medical consultation
+
+AI-Powered Insights:
+- Google Gemini integration provides intelligent UV safety advice
+- Analyzes UV patterns and provides contextual recommendations
+- Offers personalized protection strategies
+- Delivers natural language guidance for sun safety
+
+5.3 Device Management
+
+Multi-Device Support:
+- Link multiple UVify devices to single account
+- Switch between devices in dashboard view
+- Compare data across different locations
+- Manage device settings individually or globally
+
+Device Monitoring:
+- Real-time device status tracking
+- Battery level monitoring and charging alerts
+- Connection status and data transmission health
+- Firmware update notifications and SD card management
+
+6. SAFETY GUIDELINES AND BEST PRACTICES
+
+6.1 UV Exposure Safety
+
+Understanding UV Risks:
+- UV radiation can cause sunburn, skin damage, and increase skin cancer risk
+- Different skin types have varying sensitivity levels
+- UV intensity varies by time, season, location, and weather conditions
+
+Protection Strategies:
+- Use broad-spectrum sunscreen (SPF 30+)
+- Wear protective clothing, hats, and sunglasses
+- Seek shade during peak UV hours (10 AM - 4 PM)
+- Reapply sunscreen every 2 hours when outdoors
+- Use UVify alerts as early warning system
+
+6.2 Device Safety and Handling
+
+Device Care:
+- Keep device dry and avoid extreme temperatures
+- Handle battery carefully to prevent short circuits
+- Use only provided charger for battery charging
+- Clean device exterior with soft, dry cloth only
+
+Battery Safety:
+- Charge battery in well-ventilated area
+- Do not overcharge or expose to heat sources
+- Replace battery if damaged or swollen
+- Dispose of old batteries according to local regulations
+
+7. TROUBLESHOOTING AND MAINTENANCE
+
+7.1 Common Issues and Solutions
+
+Device Won't Power On:
+- Check battery charge level
+- Ensure rocker switch is in "ON" position
+- Try different battery if available
+- Contact support if issue persists
+
+WiFi Connection Problems:
+- Verify SD card contains valid wifi_list.txt file
+- Check WiFi network credentials format
+- Ensure device is within WiFi range
+- Try alternative WiFi networks
+
+Data Not Syncing to Web App:
+- Confirm device is connected to internet
+- Check web application account status
+- Verify device is linked to user account
+- Review server connection logs
+
+OLED Display Issues:
+- Check battery voltage (minimum 3.0V required)
+- Ensure proper I2C connections
+- Reset device by power cycling
+- Clean display surface gently
+
+7.2 Maintenance Schedule
+
+Daily Maintenance:
+- Check battery charge level
+- Verify device time accuracy
+- Clean external surfaces
+- Ensure SD card is properly inserted
+
+Weekly Maintenance:
+- Review data synchronization status
+- Check WiFi connection reliability
+- Verify alert system functionality
+- Clean device thoroughly
+
+Monthly Maintenance:
+- Full battery discharge and recharge cycle
+- SD card data backup and cleanup
+- Firmware update check
+- Comprehensive system test
+
+8. TECHNICAL SUPPORT AND RESOURCES
+
+8.1 Support Channels
+
+Technical Support:
+- Email: support@uvify.com
+- Online Documentation: docs.uvify.com
+- Community Forum: forum.uvify.com
+- Live Chat: Available during business hours
+
+8.2 Warranty and Service
+
+Warranty Coverage:
+- Hardware device: 1-year limited warranty
+- Battery: 6-month limited warranty
+- Accessories: 90-day limited warranty
+
+Service Options:
+- Online troubleshooting guides
+- Remote technical assistance
+- Authorized service centers
+- Replacement parts availability
+
+8.3 Additional Resources
+
+Educational Materials:
+- UV Safety Guide and Best Practices
+- Skin Health and Sun Protection Information
+- Research Papers and UV Studies
+- User Community and Success Stories
+
+System Updates:
+- Regular firmware updates via SD card
+- Web application feature enhancements
+- Security patches and improvements
+- User feedback integration
+
+9. CONCLUSION
+
+The UVify system provides comprehensive UV monitoring through seamless integration of hardware and software components. By following this manual, users can effectively utilize the device for personal UV safety management, leverage web analytics for informed decision-making, and maintain their UVify system for long-term reliability.
+
+Remember that UVify serves as a monitoring and alert tool to supplement, not replace, established sun safety practices. Always combine UVify usage with comprehensive sun protection strategies for optimal skin health and safety.
+
+================================================================================
+
+END OF UVIFY USER MANUAL
+================================================================================

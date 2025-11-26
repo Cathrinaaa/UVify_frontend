@@ -112,7 +112,7 @@ export default function LandingPage() {
       name: "Cathrina Lapuz",
       role: "Backend Developer",
       description: "Cathrina manages server-side logic and database integrations.",
-      image: "/cath.jpg",
+      image: "/cath.png",
     },
     {
       name: "Flix Vixen Barbero",
